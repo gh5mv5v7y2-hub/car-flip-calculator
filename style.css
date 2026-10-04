@@ -1,0 +1,76 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: white;
+  text-align: center;
+  padding: 40px 15px;
+}
+
+.calculator {
+  max-width: 420px;
+  margin: auto;
+  background: #1f1f1f;
+  padding: 25px;
+  border-radius: 15px;
+}
+
+input,
+select {
+  width: 90%;
+  padding: 10px;
+  margin: 8px 0 15px;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#result {
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+.hint {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.comparison {
+  background: #292929;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
+.savedDeal {
+  background: #292929;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.editButton,
+.deleteButton {
+  margin-top: 10px;
+  border: none;
+  color: white;
+}
+
+.editButton {
+  background: #555;
+}
+
+.deleteButton {
+  background: #333;
+}
+
+.hidden {
+  display: none;
+}

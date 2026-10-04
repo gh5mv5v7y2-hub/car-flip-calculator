@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Car Flip Calculator</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+
+  <div class="calculator">
+
+    <h1>Car Flip Calculator</h1>
+
+    <p class="hint">
+      Calculate, save and compare potential flips.
+    </p>
+
+    <label>Vehicle</label>
+    <input id="carName" type="text" placeholder="Example: 2012 Honda Civic">
+
+    <label>Purchase Price</label>
+    <input id="buyPrice" type="number" placeholder="Enter if known">
+
+    <label>Repair Cost</label>
+    <input id="repairCost" type="number" placeholder="Optional">
+
+    <label>Taxes / Fees</label>
+    <input id="fees" type="number" placeholder="Optional">
+
+    <label>Expected Sale Price</label>
+    <input id="salePrice" type="number" placeholder="Enter if known">
+
+    <label>Target Profit</label>
+    <input id="targetProfit" type="number" placeholder="Enter if known">
+
+    <button id="calculateButton">
+      Calculate
+    </button>
+
+    <button id="saveButton">
+      Save Deal
+    </button>
+
+    <button id="cancelEditButton" class="hidden">
+      Cancel Edit
+    </button>
+
+    <div id="result">
+      Enter what you know
+    </div>
+
+    <div id="comparison"></div>
+
+    <label>Sort Saved Deals</label>
+
+    <select id="sortDeals">
+      <option value="default">Saved Order</option>
+      <option value="roi">Best ROI</option>
+      <option value="profit">Highest Profit</option>
+      <option value="purchase">Lowest Purchase Price</option>
+      <option value="investment">Lowest Total Investment</option>
+    </select>
+
+    <h2>Saved Deals</h2>
+
+    <div id="savedDeals"></div>
+
+  </div>
+
+</body>
+</html>
