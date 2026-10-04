@@ -2,9 +2,7 @@ let deals =
   JSON.parse(localStorage.getItem("carDeals")) || [];
 
 let currentDeal = null;
-
 let editIndex = null;
-
 
 const calculateButton =
   document.getElementById("calculateButton");
@@ -40,10 +38,148 @@ sortDeals.addEventListener(
 );
 
 
+function clamp(number, min, max) {
+
+  return Math.min(
+    Math.max(number, min),
+    max
+  );
+}
+
+
+function calculateDealScore(
+  profit,
+  roi,
+  repairs,
+  totalCost,
+  mileage
+) {
+
+  if (
+    profit === null ||
+    roi === null ||
+    mileage === null
+  ) {
+
+    return null;
+  }
+
+
+  let score = 0;
+
+
+  // ROI: up to 40 points
+  const roiPoints =
+    clamp(
+      (roi / 40) * 40,
+      0,
+      40
+    );
+
+  score += roiPoints;
+
+
+  // Profit: up to 25 points
+  const profitPoints =
+    clamp(
+      (profit / 2000) * 25,
+      0,
+      25
+    );
+
+  score += profitPoints;
+
+
+  // Repair burden: up to 15 points
+  let repairPoints = 15;
+
+  if (totalCost > 0) {
+
+    const repairRatio =
+      repairs / totalCost;
+
+    if (repairRatio > 0.40) {
+      repairPoints = 0;
+    }
+
+    else if (repairRatio > 0.30) {
+      repairPoints = 4;
+    }
+
+    else if (repairRatio > 0.20) {
+      repairPoints = 8;
+    }
+
+    else if (repairRatio > 0.10) {
+      repairPoints = 12;
+    }
+  }
+
+  score += repairPoints;
+
+
+  // Mileage: up to 20 points
+  let mileagePoints = 0;
+
+  if (mileage <= 80000) {
+    mileagePoints = 20;
+  }
+
+  else if (mileage <= 120000) {
+    mileagePoints = 16;
+  }
+
+  else if (mileage <= 160000) {
+    mileagePoints = 12;
+  }
+
+  else if (mileage <= 200000) {
+    mileagePoints = 7;
+  }
+
+  else {
+    mileagePoints = 3;
+  }
+
+  score += mileagePoints;
+
+
+  return Math.round(
+    clamp(score, 0, 100)
+  );
+}
+
+
+function getScoreLabel(score) {
+
+  if (score === null) {
+    return "Unknown";
+  }
+
+  if (score >= 80) {
+    return "Strong";
+  }
+
+  if (score >= 65) {
+    return "Good";
+  }
+
+  if (score >= 50) {
+    return "Watch Closely";
+  }
+
+  return "Weak";
+}
+
+
 function calculateFlip() {
 
   const carName =
-    document.getElementById("carName").value.trim();
+    document.getElementById("carName")
+      .value.trim();
+
+  const mileageInput =
+    document.getElementById("mileage").value;
 
   const buyInput =
     document.getElementById("buyPrice").value;
@@ -61,16 +197,8 @@ function calculateFlip() {
     document.getElementById("targetProfit").value;
 
 
-  const repairs =
-    repairInput === ""
-      ? 0
-      : Number(repairInput);
-
-  const fees =
-    feesInput === ""
-      ? 0
-      : Number(feesInput);
-
+  const hasMileage =
+    mileageInput !== "";
 
   const hasBuy =
     buyInput !== "";
@@ -82,10 +210,25 @@ function calculateFlip() {
     targetInput !== "";
 
 
+  const mileage =
+    hasMileage
+      ? Number(mileageInput)
+      : null;
+
   const buy =
     hasBuy
       ? Number(buyInput)
       : 0;
+
+  const repairs =
+    repairInput === ""
+      ? 0
+      : Number(repairInput);
+
+  const fees =
+    feesInput === ""
+      ? 0
+      : Number(feesInput);
 
   const sale =
     hasSale
@@ -124,9 +267,12 @@ function calculateFlip() {
       profit =
         sale - totalCost;
 
+
       if (totalCost > 0) {
+
         roi =
           (profit / totalCost) * 100;
+
       }
 
 
@@ -176,10 +322,46 @@ function calculateFlip() {
     }
 
 
+    const dealScore =
+      calculateDealScore(
+        profit,
+        roi,
+        repairs,
+        totalCost,
+        mileage
+      );
+
+
+    if (dealScore !== null) {
+
+      result +=
+        "<br><br>⭐ Deal Score: " +
+        dealScore +
+        "/100";
+
+      result +=
+        "<br>" +
+        getScoreLabel(dealScore) +
+        " on entered numbers";
+
+    }
+
+    else if (
+      hasSale &&
+      !hasMileage
+    ) {
+
+      result +=
+        "<br><br>Enter mileage to calculate Deal Score.";
+    }
+
+
     currentDeal = {
 
       name:
         carName || "Unnamed Car",
+
+      mileage: mileage,
 
       buy: buy,
 
@@ -201,13 +383,18 @@ function calculateFlip() {
 
       profit: profit,
 
-      roi: roi
+      roi: roi,
+
+      score: dealScore
     };
 
   }
 
 
-  else if (hasSale && hasTarget) {
+  else if (
+    hasSale &&
+    hasTarget
+  ) {
 
     const maxOffer =
       sale -
@@ -231,7 +418,6 @@ function calculateFlip() {
       "<br>or Sale Price + Target Profit";
 
     currentDeal = null;
-
   }
 
 
@@ -292,6 +478,14 @@ function editDeal(index) {
 
 
   document.getElementById(
+    "mileage"
+  ).value =
+    deal.mileage == null
+      ? ""
+      : deal.mileage;
+
+
+  document.getElementById(
     "buyPrice"
   ).value =
     deal.buy;
@@ -312,7 +506,7 @@ function editDeal(index) {
   document.getElementById(
     "salePrice"
   ).value =
-    deal.sale === null
+    deal.sale == null
       ? ""
       : deal.sale;
 
@@ -382,6 +576,10 @@ function clearForm() {
 
   document.getElementById(
     "carName"
+  ).value = "";
+
+  document.getElementById(
+    "mileage"
   ).value = "";
 
   document.getElementById(
@@ -459,8 +657,8 @@ function compareDeals() {
     deals.filter(function(deal) {
 
       return (
-        deal.profit !== null &&
-        deal.roi !== null
+        deal.profit != null &&
+        deal.roi != null
       );
 
     });
@@ -493,20 +691,62 @@ function compareDeals() {
         deal.roi >
         bestROI.roi
       ) {
-        bestROI =
-          deal;
+        bestROI = deal;
       }
 
       if (
         deal.profit >
         bestProfit.profit
       ) {
-        bestProfit =
-          deal;
+        bestProfit = deal;
       }
 
     }
   );
+
+
+  const scoredDeals =
+    completedDeals.filter(
+      function(deal) {
+
+        return deal.score != null;
+
+      }
+    );
+
+
+  let scoreText = "";
+
+
+  if (scoredDeals.length > 0) {
+
+    let bestScore =
+      scoredDeals[0];
+
+
+    scoredDeals.forEach(
+      function(deal) {
+
+        if (
+          deal.score >
+          bestScore.score
+        ) {
+
+          bestScore = deal;
+
+        }
+
+      }
+    );
+
+
+    scoreText =
+      "<br>⭐ Best Deal Score: " +
+      bestScore.name +
+      " — " +
+      bestScore.score +
+      "/100";
+  }
 
 
   comparison.className =
@@ -525,7 +765,9 @@ function compareDeals() {
     "<br>💰 Highest Profit: " +
     bestProfit.name +
     " — $" +
-    bestProfit.profit.toFixed(2);
+    bestProfit.profit.toFixed(2) +
+
+    scoreText;
 }
 
 
@@ -572,27 +814,37 @@ function displayDeals() {
     );
 
 
-  if (sortType === "roi") {
+  if (sortType === "score") {
 
     sortedDeals.sort(
       function(a, b) {
 
-        if (
-          a.deal.roi === null
-        ) {
-          return 1;
-        }
+        const aScore =
+          a.deal.score ?? -1;
 
-        if (
-          b.deal.roi === null
-        ) {
-          return -1;
-        }
+        const bScore =
+          b.deal.score ?? -1;
 
-        return (
-          b.deal.roi -
-          a.deal.roi
-        );
+        return bScore - aScore;
+
+      }
+    );
+
+  }
+
+
+  else if (sortType === "roi") {
+
+    sortedDeals.sort(
+      function(a, b) {
+
+        const aROI =
+          a.deal.roi ?? -Infinity;
+
+        const bROI =
+          b.deal.roi ?? -Infinity;
+
+        return bROI - aROI;
 
       }
     );
@@ -607,22 +859,13 @@ function displayDeals() {
     sortedDeals.sort(
       function(a, b) {
 
-        if (
-          a.deal.profit === null
-        ) {
-          return 1;
-        }
+        const aProfit =
+          a.deal.profit ?? -Infinity;
 
-        if (
-          b.deal.profit === null
-        ) {
-          return -1;
-        }
+        const bProfit =
+          b.deal.profit ?? -Infinity;
 
-        return (
-          b.deal.profit -
-          a.deal.profit
-        );
+        return bProfit - aProfit;
 
       }
     );
@@ -666,6 +909,30 @@ function displayDeals() {
   }
 
 
+  else if (
+    sortType === "mileage"
+  ) {
+
+    sortedDeals.sort(
+      function(a, b) {
+
+        const aMileage =
+          a.deal.mileage ?? Infinity;
+
+        const bMileage =
+          b.deal.mileage ?? Infinity;
+
+        return (
+          aMileage -
+          bMileage
+        );
+
+      }
+    );
+
+  }
+
+
   sortedDeals.forEach(
     function(item) {
 
@@ -676,18 +943,35 @@ function displayDeals() {
         item.originalIndex;
 
 
+      const mileageText =
+        deal.mileage == null
+          ? "Unknown"
+          : Number(deal.mileage)
+              .toLocaleString();
+
+
       const profitText =
-        deal.profit === null
+        deal.profit == null
           ? "Unknown"
           : "$" +
             deal.profit.toFixed(2);
 
 
       const roiText =
-        deal.roi === null
+        deal.roi == null
           ? "Unknown"
           : deal.roi.toFixed(1) +
             "%";
+
+
+      const scoreText =
+        deal.score == null
+          ? "Unknown"
+          : deal.score +
+            "/100 — " +
+            getScoreLabel(
+              deal.score
+            );
 
 
       const dealBox =
@@ -702,6 +986,9 @@ function displayDeals() {
 
       dealBox.innerHTML = `
         <strong>${deal.name}</strong>
+
+        <br>Mileage:
+        ${mileageText}
 
         <br>Purchase:
         $${deal.buy.toFixed(2)}
@@ -720,6 +1007,11 @@ function displayDeals() {
 
         <br>ROI:
         ${roiText}
+
+        <div class="dealScore">
+          ⭐ Deal Score:
+          ${scoreText}
+        </div>
       `;
 
 

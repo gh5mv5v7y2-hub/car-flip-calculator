@@ -19,22 +19,32 @@
     </p>
 
     <label>Vehicle</label>
-    <input id="carName" type="text" placeholder="Example: 2012 Honda Civic">
+    <input id="carName" type="text"
+      placeholder="Example: 2012 Honda Civic">
+
+    <label>Mileage</label>
+    <input id="mileage" type="number"
+      placeholder="Example: 125000">
 
     <label>Purchase Price</label>
-    <input id="buyPrice" type="number" placeholder="Enter if known">
+    <input id="buyPrice" type="number"
+      placeholder="Enter if known">
 
     <label>Repair Cost</label>
-    <input id="repairCost" type="number" placeholder="Optional">
+    <input id="repairCost" type="number"
+      placeholder="Optional">
 
     <label>Taxes / Fees</label>
-    <input id="fees" type="number" placeholder="Optional">
+    <input id="fees" type="number"
+      placeholder="Optional">
 
     <label>Expected Sale Price</label>
-    <input id="salePrice" type="number" placeholder="Enter if known">
+    <input id="salePrice" type="number"
+      placeholder="Enter if known">
 
     <label>Target Profit</label>
-    <input id="targetProfit" type="number" placeholder="Enter if known">
+    <input id="targetProfit" type="number"
+      placeholder="Enter if known">
 
     <button id="calculateButton">
       Calculate
@@ -58,10 +68,12 @@
 
     <select id="sortDeals">
       <option value="default">Saved Order</option>
+      <option value="score">Best Deal Score</option>
       <option value="roi">Best ROI</option>
       <option value="profit">Highest Profit</option>
       <option value="purchase">Lowest Purchase Price</option>
       <option value="investment">Lowest Total Investment</option>
+      <option value="mileage">Lowest Mileage</option>
     </select>
 
     <h2>Saved Deals</h2>
