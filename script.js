@@ -4,6 +4,7 @@ let deals =
 let currentDeal = null;
 let editIndex = null;
 
+
 const calculateButton =
   document.getElementById("calculateButton");
 
@@ -47,6 +48,61 @@ function clamp(number, min, max) {
 }
 
 
+function money(number) {
+
+  return "$" +
+    Number(number).toLocaleString(
+      undefined,
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }
+    );
+}
+
+
+function escapeHTML(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent = text;
+
+  return div.innerHTML;
+}
+
+
+function readNumber(id) {
+
+  const value =
+    document.getElementById(id).value;
+
+  if (value === "") {
+    return null;
+  }
+
+  return Number(value);
+}
+
+
+function calculateROI(
+  profit,
+  totalCost
+) {
+
+  if (
+    profit === null ||
+    totalCost <= 0
+  ) {
+    return null;
+  }
+
+  return (
+    profit / totalCost
+  ) * 100;
+}
+
+
 function calculateDealScore(
   profit,
   roi,
@@ -60,7 +116,6 @@ function calculateDealScore(
     roi === null ||
     mileage === null
   ) {
-
     return null;
   }
 
@@ -68,29 +123,23 @@ function calculateDealScore(
   let score = 0;
 
 
-  // ROI: up to 40 points
-  const roiPoints =
-    clamp(
-      (roi / 40) * 40,
-      0,
-      40
-    );
-
-  score += roiPoints;
+  // ROI: 40 points max
+  score += clamp(
+    roi,
+    0,
+    40
+  );
 
 
-  // Profit: up to 25 points
-  const profitPoints =
-    clamp(
-      (profit / 2000) * 25,
-      0,
-      25
-    );
-
-  score += profitPoints;
+  // Profit: 25 points max
+  score += clamp(
+    (profit / 2000) * 25,
+    0,
+    25
+  );
 
 
-  // Repair burden: up to 15 points
+  // Repair burden: 15 points max
   let repairPoints = 15;
 
   if (totalCost > 0) {
@@ -118,7 +167,7 @@ function calculateDealScore(
   score += repairPoints;
 
 
-  // Mileage: up to 20 points
+  // Mileage: 20 points max
   let mileagePoints = 0;
 
   if (mileage <= 80000) {
@@ -172,258 +221,599 @@ function getScoreLabel(score) {
 }
 
 
+function normalizeDeal(deal) {
+
+  const oldRepairs =
+    Number(deal.repairs ?? 0);
+
+  const repairBest =
+    Number(
+      deal.repairBest ??
+      oldRepairs
+    );
+
+  const repairLikely =
+    Number(
+      deal.repairLikely ??
+      oldRepairs
+    );
+
+  const repairWorst =
+    Number(
+      deal.repairWorst ??
+      oldRepairs
+    );
+
+  const buy =
+    Number(deal.buy ?? 0);
+
+  const fees =
+    Number(deal.fees ?? 0);
+
+  const mileage =
+    deal.mileage == null
+      ? null
+      : Number(deal.mileage);
+
+  const sale =
+    deal.sale == null
+      ? null
+      : Number(deal.sale);
+
+  const target =
+    deal.target == null
+      ? null
+      : Number(deal.target);
+
+
+  const totalBest =
+    buy + fees + repairBest;
+
+  const totalLikely =
+    buy + fees + repairLikely;
+
+  const totalWorst =
+    buy + fees + repairWorst;
+
+
+  const profitBest =
+    sale === null
+      ? null
+      : sale - totalBest;
+
+  const profitLikely =
+    sale === null
+      ? null
+      : sale - totalLikely;
+
+  const profitWorst =
+    sale === null
+      ? null
+      : sale - totalWorst;
+
+
+  const roiBest =
+    calculateROI(
+      profitBest,
+      totalBest
+    );
+
+  const roiLikely =
+    calculateROI(
+      profitLikely,
+      totalLikely
+    );
+
+  const roiWorst =
+    calculateROI(
+      profitWorst,
+      totalWorst
+    );
+
+
+  const score =
+    calculateDealScore(
+      profitLikely,
+      roiLikely,
+      repairLikely,
+      totalLikely,
+      mileage
+    );
+
+
+  return {
+
+    name:
+      deal.name || "Unnamed Car",
+
+    mileage: mileage,
+
+    buy: buy,
+
+    repairBest: repairBest,
+
+    repairLikely: repairLikely,
+
+    repairWorst: repairWorst,
+
+    fees: fees,
+
+    sale: sale,
+
+    target: target,
+
+    totalBest: totalBest,
+
+    totalLikely: totalLikely,
+
+    totalWorst: totalWorst,
+
+    profitBest: profitBest,
+
+    profitLikely: profitLikely,
+
+    profitWorst: profitWorst,
+
+    roiBest: roiBest,
+
+    roiLikely: roiLikely,
+
+    roiWorst: roiWorst,
+
+    score: score
+  };
+}
+
+
+deals =
+  deals.map(normalizeDeal);
+
+saveDeals();
+
+
 function calculateFlip() {
 
   const carName =
-    document.getElementById("carName")
-      .value.trim();
-
-  const mileageInput =
-    document.getElementById("mileage").value;
-
-  const buyInput =
-    document.getElementById("buyPrice").value;
-
-  const repairInput =
-    document.getElementById("repairCost").value;
-
-  const feesInput =
-    document.getElementById("fees").value;
-
-  const saleInput =
-    document.getElementById("salePrice").value;
-
-  const targetInput =
-    document.getElementById("targetProfit").value;
-
-
-  const hasMileage =
-    mileageInput !== "";
-
-  const hasBuy =
-    buyInput !== "";
-
-  const hasSale =
-    saleInput !== "";
-
-  const hasTarget =
-    targetInput !== "";
+    document.getElementById(
+      "carName"
+    ).value.trim();
 
 
   const mileage =
-    hasMileage
-      ? Number(mileageInput)
-      : null;
+    readNumber("mileage");
 
   const buy =
-    hasBuy
-      ? Number(buyInput)
-      : 0;
+    readNumber("buyPrice");
 
-  const repairs =
-    repairInput === ""
-      ? 0
-      : Number(repairInput);
+  const repairBestInput =
+    readNumber("repairBest");
 
-  const fees =
-    feesInput === ""
-      ? 0
-      : Number(feesInput);
+  const repairLikelyInput =
+    readNumber("repairLikely");
+
+  const repairWorstInput =
+    readNumber("repairWorst");
+
+  const feesInput =
+    readNumber("fees");
 
   const sale =
-    hasSale
-      ? Number(saleInput)
-      : 0;
+    readNumber("salePrice");
 
   const target =
-    hasTarget
-      ? Number(targetInput)
-      : 0;
+    readNumber("targetProfit");
 
 
-  let result = "";
+  const fees =
+    feesInput ?? 0;
 
 
-  if (hasBuy) {
+  const repairBest =
+    repairBestInput ?? 0;
 
-    const totalCost =
-      buy + repairs + fees;
+  const repairLikely =
+    repairLikelyInput ??
+    repairBest;
 
-    let profit = null;
-    let roi = null;
-
-
-    result +=
-      "Total Investment: $" +
-      totalCost.toFixed(2);
-
-    result +=
-      "<br>Break-Even Price: $" +
-      totalCost.toFixed(2);
+  const repairWorst =
+    repairWorstInput ??
+    repairLikely;
 
 
-    if (hasSale) {
+  const enteredNumbers = [
+    mileage,
+    buy,
+    repairBestInput,
+    repairLikelyInput,
+    repairWorstInput,
+    feesInput,
+    sale,
+    target
+  ];
 
-      profit =
-        sale - totalCost;
+
+  if (
+    enteredNumbers.some(
+      value =>
+        value !== null &&
+        value < 0
+    )
+  ) {
+
+    showResult(
+      "⚠️ Values cannot be negative."
+    );
+
+    currentDeal = null;
+
+    return;
+  }
 
 
-      if (totalCost > 0) {
+  if (
+    repairBest >
+    repairLikely ||
+    repairLikely >
+    repairWorst
+  ) {
 
-        roi =
-          (profit / totalCost) * 100;
+    showResult(
+      "⚠️ Repair estimates should go:<br>" +
+      "Best ≤ Likely ≤ Worst"
+    );
+
+    currentDeal = null;
+
+    return;
+  }
+
+
+  if (buy !== null) {
+
+    const totalBest =
+      buy +
+      repairBest +
+      fees;
+
+    const totalLikely =
+      buy +
+      repairLikely +
+      fees;
+
+    const totalWorst =
+      buy +
+      repairWorst +
+      fees;
+
+
+    const profitBest =
+      sale === null
+        ? null
+        : sale - totalBest;
+
+    const profitLikely =
+      sale === null
+        ? null
+        : sale - totalLikely;
+
+    const profitWorst =
+      sale === null
+        ? null
+        : sale - totalWorst;
+
+
+    const roiBest =
+      calculateROI(
+        profitBest,
+        totalBest
+      );
+
+    const roiLikely =
+      calculateROI(
+        profitLikely,
+        totalLikely
+      );
+
+    const roiWorst =
+      calculateROI(
+        profitWorst,
+        totalWorst
+      );
+
+
+    const score =
+      calculateDealScore(
+        profitLikely,
+        roiLikely,
+        repairLikely,
+        totalLikely,
+        mileage
+      );
+
+
+    let status = "";
+
+    if (profitLikely !== null) {
+
+      if (profitLikely > 0) {
+
+        status =
+          "✅ Likely Case: Profitable";
 
       }
 
+      else if (profitLikely < 0) {
 
-      if (profit > 0) {
-
-        result =
-          "✅ Profitable<br>" +
-          result;
-
-      }
-
-      else if (profit < 0) {
-
-        result =
-          "❌ Losing Money<br>" +
-          result;
+        status =
+          "❌ Likely Case: Losing Money";
 
       }
 
       else {
 
-        result =
-          "⚖️ Break Even<br>" +
-          result;
+        status =
+          "⚖️ Likely Case: Break Even";
       }
-
-
-      result +=
-        "<br>Profit: $" +
-        profit.toFixed(2);
-
-      result +=
-        "<br>ROI: " +
-        roi.toFixed(1) +
-        "%";
     }
 
 
-    if (hasTarget) {
+    let result = "";
 
-      const requiredSale =
-        totalCost + target;
+    if (status !== "") {
 
       result +=
-        "<br><br>🎯 Sell For: $" +
-        requiredSale.toFixed(2);
+        "<strong>" +
+        status +
+        "</strong><br>";
     }
 
 
-    const dealScore =
-      calculateDealScore(
-        profit,
-        roi,
-        repairs,
-        totalCost,
-        mileage
-      );
+    result += `
+      <div class="scenarioBox">
+
+        <strong>Best Case</strong>
+
+        <br>Repairs:
+        ${money(repairBest)}
+
+        <br>Total Investment:
+        ${money(totalBest)}
+    `;
 
 
-    if (dealScore !== null) {
+    if (sale !== null) {
 
-      result +=
-        "<br><br>⭐ Deal Score: " +
-        dealScore +
-        "/100";
+      result += `
+        <br>Profit:
+        ${money(profitBest)}
 
-      result +=
-        "<br>" +
-        getScoreLabel(dealScore) +
-        " on entered numbers";
-
+        <br>ROI:
+        ${
+          roiBest === null
+            ? "Unknown"
+            : roiBest.toFixed(1) + "%"
+        }
+      `;
     }
 
-    else if (
-      hasSale &&
-      !hasMileage
-    ) {
+
+    if (target !== null) {
+
+      result += `
+        <br>Sell For Target Profit:
+        ${money(totalBest + target)}
+      `;
+    }
+
+
+    result += `
+      </div>
+
+      <div class="scenarioBox">
+
+        <strong>Likely Case</strong>
+
+        <br>Repairs:
+        ${money(repairLikely)}
+
+        <br>Total Investment:
+        ${money(totalLikely)}
+    `;
+
+
+    if (sale !== null) {
+
+      result += `
+        <br>Profit:
+        ${money(profitLikely)}
+
+        <br>ROI:
+        ${
+          roiLikely === null
+            ? "Unknown"
+            : roiLikely.toFixed(1) + "%"
+        }
+      `;
+    }
+
+
+    if (target !== null) {
+
+      result += `
+        <br>Sell For Target Profit:
+        ${money(totalLikely + target)}
+      `;
+    }
+
+
+    result += `
+      </div>
+
+      <div class="scenarioBox">
+
+        <strong>Worst Case</strong>
+
+        <br>Repairs:
+        ${money(repairWorst)}
+
+        <br>Total Investment:
+        ${money(totalWorst)}
+    `;
+
+
+    if (sale !== null) {
+
+      result += `
+        <br>Profit:
+        ${money(profitWorst)}
+
+        <br>ROI:
+        ${
+          roiWorst === null
+            ? "Unknown"
+            : roiWorst.toFixed(1) + "%"
+        }
+      `;
+    }
+
+
+    if (target !== null) {
+
+      result += `
+        <br>Sell For Target Profit:
+        ${money(totalWorst + target)}
+      `;
+    }
+
+
+    result +=
+      "</div>";
+
+
+    if (score !== null) {
 
       result +=
-        "<br><br>Enter mileage to calculate Deal Score.";
+        "<br>⭐ Deal Score: " +
+        score +
+        "/100 — " +
+        getScoreLabel(score);
+
+      result +=
+        "<br><span class='hint'>" +
+        "Score uses the likely repair scenario." +
+        "</span>";
     }
 
 
     currentDeal = {
 
       name:
-        carName || "Unnamed Car",
+        carName ||
+        "Unnamed Car",
 
       mileage: mileage,
 
       buy: buy,
 
-      repairs: repairs,
+      repairBest: repairBest,
+
+      repairLikely: repairLikely,
+
+      repairWorst: repairWorst,
 
       fees: fees,
 
-      sale:
-        hasSale
-          ? sale
-          : null,
+      sale: sale,
 
-      target:
-        hasTarget
-          ? target
-          : null,
+      target: target,
 
-      totalCost: totalCost,
+      totalBest: totalBest,
 
-      profit: profit,
+      totalLikely: totalLikely,
 
-      roi: roi,
+      totalWorst: totalWorst,
 
-      score: dealScore
+      profitBest: profitBest,
+
+      profitLikely: profitLikely,
+
+      profitWorst: profitWorst,
+
+      roiBest: roiBest,
+
+      roiLikely: roiLikely,
+
+      roiWorst: roiWorst,
+
+      score: score
     };
 
+
+    showResult(result);
+
+    return;
   }
 
 
-  else if (
-    hasSale &&
-    hasTarget
+  if (
+    sale !== null &&
+    target !== null
   ) {
 
-    const maxOffer =
+    const maxOfferBest =
       sale -
-      repairs -
       fees -
+      repairBest -
       target;
 
-    result =
-      "🎯 Max Purchase Price: $" +
-      maxOffer.toFixed(2);
+    const maxOfferLikely =
+      sale -
+      fees -
+      repairLikely -
+      target;
+
+    const maxOfferWorst =
+      sale -
+      fees -
+      repairWorst -
+      target;
+
+
+    showResult(
+      "<strong>🎯 Maximum Purchase Price</strong>" +
+
+      "<br><br>Best Case: " +
+      money(maxOfferBest) +
+
+      "<br>Likely Case: " +
+      money(maxOfferLikely) +
+
+      "<br>Worst Case: " +
+      money(maxOfferWorst)
+    );
+
 
     currentDeal = null;
 
+    return;
   }
 
 
-  else {
+  showResult(
+    "⚠️ Enter a Purchase Price" +
+    "<br>or" +
+    "<br>Expected Sale Price + Target Profit"
+  );
 
-    result =
-      "⚠️ Enter a Purchase Price" +
-      "<br>or Sale Price + Target Profit";
+  currentDeal = null;
+}
 
-    currentDeal = null;
-  }
 
+function showResult(html) {
 
   document.getElementById(
     "result"
-  ).innerHTML = result;
+  ).innerHTML = html;
 }
 
 
@@ -439,7 +829,9 @@ function saveDeal() {
 
   if (editIndex === null) {
 
-    deals.push(currentDeal);
+    deals.push(
+      currentDeal
+    );
 
   }
 
@@ -447,7 +839,6 @@ function saveDeal() {
 
     deals[editIndex] =
       currentDeal;
-
   }
 
 
@@ -460,6 +851,11 @@ function saveDeal() {
   clearForm();
 
   exitEditMode();
+
+
+  showResult(
+    "✅ Deal saved."
+  );
 }
 
 
@@ -480,43 +876,49 @@ function editDeal(index) {
   document.getElementById(
     "mileage"
   ).value =
-    deal.mileage == null
-      ? ""
-      : deal.mileage;
+    deal.mileage ?? "";
 
 
   document.getElementById(
     "buyPrice"
   ).value =
-    deal.buy;
+    deal.buy ?? "";
 
 
   document.getElementById(
-    "repairCost"
+    "repairBest"
   ).value =
-    deal.repairs;
+    deal.repairBest ?? "";
+
+
+  document.getElementById(
+    "repairLikely"
+  ).value =
+    deal.repairLikely ?? "";
+
+
+  document.getElementById(
+    "repairWorst"
+  ).value =
+    deal.repairWorst ?? "";
 
 
   document.getElementById(
     "fees"
   ).value =
-    deal.fees;
+    deal.fees ?? "";
 
 
   document.getElementById(
     "salePrice"
   ).value =
-    deal.sale == null
-      ? ""
-      : deal.sale;
+    deal.sale ?? "";
 
 
   document.getElementById(
     "targetProfit"
   ).value =
-    deal.target == null
-      ? ""
-      : deal.target;
+    deal.target ?? "";
 
 
   editIndex =
@@ -532,11 +934,10 @@ function editDeal(index) {
   );
 
 
-  document.getElementById(
-    "result"
-  ).innerHTML =
+  showResult(
     "✏️ Editing " +
-    deal.name;
+    escapeHTML(deal.name)
+  );
 
 
   window.scrollTo({
@@ -552,10 +953,9 @@ function cancelEdit() {
 
   exitEditMode();
 
-  document.getElementById(
-    "result"
-  ).innerHTML =
-    "Edit cancelled";
+  showResult(
+    "Edit cancelled."
+  );
 }
 
 
@@ -574,33 +974,26 @@ function exitEditMode() {
 
 function clearForm() {
 
-  document.getElementById(
-    "carName"
-  ).value = "";
-
-  document.getElementById(
-    "mileage"
-  ).value = "";
-
-  document.getElementById(
-    "buyPrice"
-  ).value = "";
-
-  document.getElementById(
-    "repairCost"
-  ).value = "";
-
-  document.getElementById(
-    "fees"
-  ).value = "";
-
-  document.getElementById(
-    "salePrice"
-  ).value = "";
-
-  document.getElementById(
+  [
+    "carName",
+    "mileage",
+    "buyPrice",
+    "repairBest",
+    "repairLikely",
+    "repairWorst",
+    "fees",
+    "salePrice",
     "targetProfit"
-  ).value = "";
+  ].forEach(
+    function(id) {
+
+      document.getElementById(
+        id
+      ).value = "";
+
+    }
+  );
+
 
   currentDeal = null;
 }
@@ -608,7 +1001,10 @@ function clearForm() {
 
 function deleteDeal(index) {
 
-  deals.splice(index, 1);
+  deals.splice(
+    index,
+    1
+  );
 
 
   if (editIndex === index) {
@@ -654,19 +1050,24 @@ function compareDeals() {
 
 
   const completedDeals =
-    deals.filter(function(deal) {
+    deals.filter(
+      function(deal) {
 
-      return (
-        deal.profit != null &&
-        deal.roi != null
-      );
+        return (
+          deal.profitLikely !== null &&
+          deal.roiLikely !== null
+        );
 
-    });
+      }
+    );
 
 
-  if (completedDeals.length < 2) {
+  if (
+    completedDeals.length < 2
+  ) {
 
-    comparison.className = "";
+    comparison.className =
+      "";
 
     comparison.innerHTML =
       "<p class='hint'>" +
@@ -688,16 +1089,19 @@ function compareDeals() {
     function(deal) {
 
       if (
-        deal.roi >
-        bestROI.roi
+        deal.roiLikely >
+        bestROI.roiLikely
       ) {
+
         bestROI = deal;
       }
 
+
       if (
-        deal.profit >
-        bestProfit.profit
+        deal.profitLikely >
+        bestProfit.profitLikely
       ) {
+
         bestProfit = deal;
       }
 
@@ -707,18 +1111,18 @@ function compareDeals() {
 
   const scoredDeals =
     completedDeals.filter(
-      function(deal) {
-
-        return deal.score != null;
-
-      }
+      deal =>
+        deal.score !== null
     );
 
 
-  let scoreText = "";
+  let scoreText =
+    "";
 
 
-  if (scoredDeals.length > 0) {
+  if (
+    scoredDeals.length > 0
+  ) {
 
     let bestScore =
       scoredDeals[0];
@@ -733,7 +1137,6 @@ function compareDeals() {
         ) {
 
           bestScore = deal;
-
         }
 
       }
@@ -742,7 +1145,7 @@ function compareDeals() {
 
     scoreText =
       "<br>⭐ Best Deal Score: " +
-      bestScore.name +
+      escapeHTML(bestScore.name) +
       " — " +
       bestScore.score +
       "/100";
@@ -756,16 +1159,16 @@ function compareDeals() {
   comparison.innerHTML =
     "<strong>Deal Comparison</strong>" +
 
-    "<br><br>🏆 Best ROI: " +
-    bestROI.name +
+    "<br><br>🏆 Best Likely ROI: " +
+    escapeHTML(bestROI.name) +
     " — " +
-    bestROI.roi.toFixed(1) +
+    bestROI.roiLikely.toFixed(1) +
     "%" +
 
-    "<br>💰 Highest Profit: " +
-    bestProfit.name +
-    " — $" +
-    bestProfit.profit.toFixed(2) +
+    "<br>💰 Highest Likely Profit: " +
+    escapeHTML(bestProfit.name) +
+    " — " +
+    money(bestProfit.profitLikely) +
 
     scoreText;
 }
@@ -803,11 +1206,8 @@ function displayDeals() {
       function(deal, index) {
 
         return {
-
           deal: deal,
-
           originalIndex: index
-
         };
 
       }
@@ -817,17 +1217,9 @@ function displayDeals() {
   if (sortType === "score") {
 
     sortedDeals.sort(
-      function(a, b) {
-
-        const aScore =
-          a.deal.score ?? -1;
-
-        const bScore =
-          b.deal.score ?? -1;
-
-        return bScore - aScore;
-
-      }
+      (a, b) =>
+        (b.deal.score ?? -1) -
+        (a.deal.score ?? -1)
     );
 
   }
@@ -836,17 +1228,9 @@ function displayDeals() {
   else if (sortType === "roi") {
 
     sortedDeals.sort(
-      function(a, b) {
-
-        const aROI =
-          a.deal.roi ?? -Infinity;
-
-        const bROI =
-          b.deal.roi ?? -Infinity;
-
-        return bROI - aROI;
-
-      }
+      (a, b) =>
+        (b.deal.roiLikely ?? -Infinity) -
+        (a.deal.roiLikely ?? -Infinity)
     );
 
   }
@@ -857,17 +1241,9 @@ function displayDeals() {
   ) {
 
     sortedDeals.sort(
-      function(a, b) {
-
-        const aProfit =
-          a.deal.profit ?? -Infinity;
-
-        const bProfit =
-          b.deal.profit ?? -Infinity;
-
-        return bProfit - aProfit;
-
-      }
+      (a, b) =>
+        (b.deal.profitLikely ?? -Infinity) -
+        (a.deal.profitLikely ?? -Infinity)
     );
 
   }
@@ -878,14 +1254,9 @@ function displayDeals() {
   ) {
 
     sortedDeals.sort(
-      function(a, b) {
-
-        return (
-          a.deal.buy -
-          b.deal.buy
-        );
-
-      }
+      (a, b) =>
+        a.deal.buy -
+        b.deal.buy
     );
 
   }
@@ -896,14 +1267,9 @@ function displayDeals() {
   ) {
 
     sortedDeals.sort(
-      function(a, b) {
-
-        return (
-          a.deal.totalCost -
-          b.deal.totalCost
-        );
-
-      }
+      (a, b) =>
+        a.deal.totalLikely -
+        b.deal.totalLikely
     );
 
   }
@@ -914,20 +1280,9 @@ function displayDeals() {
   ) {
 
     sortedDeals.sort(
-      function(a, b) {
-
-        const aMileage =
-          a.deal.mileage ?? Infinity;
-
-        const bMileage =
-          b.deal.mileage ?? Infinity;
-
-        return (
-          aMileage -
-          bMileage
-        );
-
-      }
+      (a, b) =>
+        (a.deal.mileage ?? Infinity) -
+        (b.deal.mileage ?? Infinity)
     );
 
   }
@@ -944,28 +1299,28 @@ function displayDeals() {
 
 
       const mileageText =
-        deal.mileage == null
+        deal.mileage === null
           ? "Unknown"
-          : Number(deal.mileage)
-              .toLocaleString();
+          : deal.mileage.toLocaleString();
 
 
-      const profitText =
-        deal.profit == null
+      const profitRange =
+        deal.sale === null
           ? "Unknown"
-          : "$" +
-            deal.profit.toFixed(2);
+          : money(deal.profitWorst) +
+            " to " +
+            money(deal.profitBest);
 
 
-      const roiText =
-        deal.roi == null
+      const likelyROI =
+        deal.roiLikely === null
           ? "Unknown"
-          : deal.roi.toFixed(1) +
+          : deal.roiLikely.toFixed(1) +
             "%";
 
 
       const scoreText =
-        deal.score == null
+        deal.score === null
           ? "Unknown"
           : deal.score +
             "/100 — " +
@@ -985,28 +1340,35 @@ function displayDeals() {
 
 
       dealBox.innerHTML = `
-        <strong>${deal.name}</strong>
+        <strong>
+          ${escapeHTML(deal.name)}
+        </strong>
 
         <br>Mileage:
         ${mileageText}
 
         <br>Purchase:
-        $${deal.buy.toFixed(2)}
+        ${money(deal.buy)}
 
-        <br>Repairs:
-        $${deal.repairs.toFixed(2)}
+        <br>Repair Range:
+        ${money(deal.repairBest)}
+        —
+        ${money(deal.repairWorst)}
+
+        <br>Likely Repairs:
+        ${money(deal.repairLikely)}
 
         <br>Fees:
-        $${deal.fees.toFixed(2)}
+        ${money(deal.fees)}
 
-        <br>Total Investment:
-        $${deal.totalCost.toFixed(2)}
+        <br>Likely Investment:
+        ${money(deal.totalLikely)}
 
-        <br>Profit:
-        ${profitText}
+        <br>Profit Range:
+        ${profitRange}
 
-        <br>ROI:
-        ${roiText}
+        <br>Likely ROI:
+        ${likelyROI}
 
         <div class="dealScore">
           ⭐ Deal Score:
@@ -1020,14 +1382,11 @@ function displayDeals() {
           "button"
         );
 
-
       editButton.textContent =
         "Edit";
 
-
       editButton.className =
         "editButton";
-
 
       editButton.addEventListener(
         "click",
@@ -1046,14 +1405,11 @@ function displayDeals() {
           "button"
         );
 
-
       deleteButton.textContent =
         "Delete";
 
-
       deleteButton.className =
         "deleteButton";
-
 
       deleteButton.addEventListener(
         "click",
@@ -1074,7 +1430,6 @@ function displayDeals() {
       dealBox.appendChild(
         deleteButton
       );
-
 
       container.appendChild(
         dealBox
