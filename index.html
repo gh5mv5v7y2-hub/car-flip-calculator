@@ -10,15 +10,8 @@
 
   <title>Car Flip Calculator</title>
 
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
-  <script
-    src="script.js"
-    defer
-  ></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 
 <body>
@@ -28,20 +21,30 @@
     <h1>Car Flip Calculator</h1>
 
     <p class="hint">
-      Calculate risk, profit and what you should actually offer.
+      Analyze, save and compare potential car flips.
     </p>
 
     <label>Vehicle</label>
-
     <input
       id="carName"
       type="text"
       placeholder="Example: 2010 Dodge Journey SE"
     >
 
+    <label>Listing URL</label>
+    <input
+      id="listingUrl"
+      type="url"
+      placeholder="Paste Marketplace listing"
+    >
+
+    <label>Notes / Known Problems</label>
+    <textarea
+      id="notes"
+      placeholder="Example: No crank, P1607, needs muffler"
+    ></textarea>
 
     <label>Mileage</label>
-
     <input
       id="mileage"
       type="number"
@@ -49,9 +52,7 @@
       placeholder="Example: 165000"
     >
 
-
     <label>Purchase / Asking Price</label>
-
     <input
       id="buyPrice"
       type="number"
@@ -59,12 +60,9 @@
       placeholder="Example: 1500"
     >
 
-
     <h3>Repair Estimate</h3>
 
-
     <label>Best Case</label>
-
     <input
       id="repairBest"
       type="number"
@@ -72,9 +70,7 @@
       placeholder="Example: 100"
     >
 
-
     <label>Likely Case</label>
-
     <input
       id="repairLikely"
       type="number"
@@ -82,9 +78,7 @@
       placeholder="Example: 500"
     >
 
-
     <label>Worst Case</label>
-
     <input
       id="repairWorst"
       type="number"
@@ -92,9 +86,7 @@
       placeholder="Example: 1500"
     >
 
-
     <label>Taxes / Fees</label>
-
     <input
       id="fees"
       type="number"
@@ -102,9 +94,7 @@
       placeholder="Optional"
     >
 
-
     <label>Expected Sale Price</label>
-
     <input
       id="salePrice"
       type="number"
@@ -112,16 +102,13 @@
       placeholder="Enter if known"
     >
 
-
     <label>Target Profit</label>
-
     <input
       id="targetProfit"
       type="number"
       min="0"
-      placeholder="Example: 1000"
+      placeholder="Example: 800"
     >
-
 
     <button id="calculateButton">
       Calculate
@@ -131,21 +118,15 @@
       Save Deal
     </button>
 
-    <button
-      id="cancelEditButton"
-      class="hidden"
-    >
+    <button id="cancelEditButton" class="hidden">
       Cancel Edit
     </button>
-
 
     <div id="result">
       Enter what you know
     </div>
 
-
     <div id="comparison"></div>
-
 
     <label>Sort Saved Deals</label>
 
@@ -184,7 +165,6 @@
       </option>
 
     </select>
-
 
     <h2>Saved Deals</h2>
 

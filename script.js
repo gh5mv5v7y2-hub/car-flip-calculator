@@ -18,29 +18,13 @@ const sortDeals =
   document.getElementById("sortDeals");
 
 
-calculateButton.addEventListener(
-  "click",
-  calculateFlip
-);
-
-saveButton.addEventListener(
-  "click",
-  saveDeal
-);
-
-cancelEditButton.addEventListener(
-  "click",
-  cancelEdit
-);
-
-sortDeals.addEventListener(
-  "change",
-  displayDeals
-);
+calculateButton.addEventListener("click", calculateFlip);
+saveButton.addEventListener("click", saveDeal);
+cancelEditButton.addEventListener("click", cancelEdit);
+sortDeals.addEventListener("change", displayDeals);
 
 
 function clamp(number, min, max) {
-
   return Math.min(
     Math.max(number, min),
     max
@@ -50,25 +34,19 @@ function clamp(number, min, max) {
 
 function money(number) {
 
-  const value =
-    Number(number);
+  const value = Number(number);
 
   const sign =
-    value < 0
-      ? "-"
-      : "";
+    value < 0 ? "-" : "";
 
-  return (
-    sign +
-    "$" +
+  return sign + "$" +
     Math.abs(value).toLocaleString(
       undefined,
       {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }
-    )
-  );
+    );
 }
 
 
@@ -90,6 +68,32 @@ function escapeHTML(text) {
   div.textContent = text;
 
   return div.innerHTML;
+}
+
+
+function safeURL(url) {
+
+  if (!url) {
+    return null;
+  }
+
+  try {
+
+    const parsed =
+      new URL(url);
+
+    if (
+      parsed.protocol === "http:" ||
+      parsed.protocol === "https:"
+    ) {
+      return parsed.href;
+    }
+
+  } catch (error) {
+    return null;
+  }
+
+  return null;
 }
 
 
@@ -166,8 +170,7 @@ function calculateRisk(
     Math.abs(profitWorst);
 
   const downsideRatio =
-    downside /
-    profitLikely;
+    downside / profitLikely;
 
 
   if (
@@ -238,8 +241,7 @@ function calculateDealScore(
   if (totalCost > 0) {
 
     const repairRatio =
-      repairs /
-      totalCost;
+      repairs / totalCost;
 
 
     if (repairRatio > 0.40) {
@@ -260,8 +262,7 @@ function calculateDealScore(
   }
 
 
-  score +=
-    repairPoints;
+  score += repairPoints;
 
 
   let mileagePoints = 0;
@@ -288,8 +289,7 @@ function calculateDealScore(
   }
 
 
-  score +=
-    mileagePoints;
+  score += mileagePoints;
 
 
   return Math.round(
@@ -493,6 +493,16 @@ function normalizeDeal(deal) {
       : Number(deal.target);
 
 
+  const listingUrl =
+    deal.listingUrl ??
+    "";
+
+
+  const notes =
+    deal.notes ??
+    "";
+
+
   const totalBest =
     buy +
     fees +
@@ -587,6 +597,10 @@ function normalizeDeal(deal) {
       deal.name ||
       "Unnamed Car",
 
+    listingUrl: listingUrl,
+
+    notes: notes,
+
     mileage: mileage,
 
     buy: buy,
@@ -643,6 +657,20 @@ function calculateFlip() {
   const carName =
     document
       .getElementById("carName")
+      .value
+      .trim();
+
+
+  const listingUrl =
+    document
+      .getElementById("listingUrl")
+      .value
+      .trim();
+
+
+  const notes =
+    document
+      .getElementById("notes")
       .value
       .trim();
 
@@ -1104,45 +1132,71 @@ function calculateFlip() {
         carName ||
         "Unnamed Car",
 
-      mileage: mileage,
+      listingUrl:
+        listingUrl,
 
-      buy: buy,
+      notes:
+        notes,
 
-      repairBest: repairBest,
+      mileage:
+        mileage,
 
-      repairLikely: repairLikely,
+      buy:
+        buy,
 
-      repairWorst: repairWorst,
+      repairBest:
+        repairBest,
 
-      fees: fees,
+      repairLikely:
+        repairLikely,
 
-      sale: sale,
+      repairWorst:
+        repairWorst,
 
-      target: target,
+      fees:
+        fees,
 
-      totalBest: totalBest,
+      sale:
+        sale,
 
-      totalLikely: totalLikely,
+      target:
+        target,
 
-      totalWorst: totalWorst,
+      totalBest:
+        totalBest,
 
-      profitBest: profitBest,
+      totalLikely:
+        totalLikely,
 
-      profitLikely: profitLikely,
+      totalWorst:
+        totalWorst,
 
-      profitWorst: profitWorst,
+      profitBest:
+        profitBest,
 
-      roiBest: roiBest,
+      profitLikely:
+        profitLikely,
 
-      roiLikely: roiLikely,
+      profitWorst:
+        profitWorst,
 
-      roiWorst: roiWorst,
+      roiBest:
+        roiBest,
 
-      score: score,
+      roiLikely:
+        roiLikely,
 
-      risk: risk,
+      roiWorst:
+        roiWorst,
 
-      offers: offers
+      score:
+        score,
+
+      risk:
+        risk,
+
+      offers:
+        offers
     };
 
 
@@ -1273,6 +1327,20 @@ function editDeal(index) {
 
 
   document.getElementById(
+    "listingUrl"
+  ).value =
+    deal.listingUrl ??
+    "";
+
+
+  document.getElementById(
+    "notes"
+  ).value =
+    deal.notes ??
+    "";
+
+
+  document.getElementById(
     "mileage"
   ).value =
     deal.mileage ??
@@ -1389,6 +1457,8 @@ function clearForm() {
 
   [
     "carName",
+    "listingUrl",
+    "notes",
     "mileage",
     "buyPrice",
     "repairBest",
@@ -1633,7 +1703,8 @@ function displayDeals() {
 
         return {
 
-          deal: deal,
+          deal:
+            deal,
 
           originalIndex:
             index
@@ -1847,6 +1918,64 @@ function displayDeals() {
           ${safeOfferText}
         </div>
       `;
+
+
+      if (
+        deal.notes
+      ) {
+
+        const notesBox =
+          document.createElement(
+            "div"
+          );
+
+        notesBox.className =
+          "dealNotes";
+
+        notesBox.textContent =
+          "Notes: " +
+          deal.notes;
+
+        dealBox.appendChild(
+          notesBox
+        );
+      }
+
+
+      const validListing =
+        safeURL(
+          deal.listingUrl
+        );
+
+
+      if (
+        validListing
+      ) {
+
+        const link =
+          document.createElement(
+            "a"
+          );
+
+        link.href =
+          validListing;
+
+        link.target =
+          "_blank";
+
+        link.rel =
+          "noopener noreferrer";
+
+        link.className =
+          "listingLink";
+
+        link.textContent =
+          "🔗 Open Listing";
+
+        dealBox.appendChild(
+          link
+        );
+      }
 
 
       const editButton =

@@ -34,13 +34,20 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   padding: 11px;
   margin: 7px 0 15px;
   font-size: 16px;
   border-radius: 6px;
   border: none;
+  font-family: Arial, sans-serif;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
 }
 
 button {
@@ -74,10 +81,7 @@ button {
   line-height: 1.7;
 }
 
-.scenarioBox {
-  text-align: left;
-}
-
+.scenarioBox,
 .offerBox {
   text-align: left;
 }
@@ -94,6 +98,23 @@ button {
   border-radius: 10px;
   text-align: left;
   line-height: 1.55;
+}
+
+.dealNotes {
+  margin-top: 10px;
+  color: #ccc;
+  white-space: pre-wrap;
+}
+
+.listingLink {
+  display: inline-block;
+  margin-top: 10px;
+  color: #9ecbff;
+  text-decoration: none;
+}
+
+.listingLink:hover {
+  text-decoration: underline;
 }
 
 .dealScore,
