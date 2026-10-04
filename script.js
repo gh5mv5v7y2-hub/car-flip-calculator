@@ -18,29 +18,13 @@ const sortDeals =
   document.getElementById("sortDeals");
 
 
-calculateButton.addEventListener(
-  "click",
-  calculateFlip
-);
-
-saveButton.addEventListener(
-  "click",
-  saveDeal
-);
-
-cancelEditButton.addEventListener(
-  "click",
-  cancelEdit
-);
-
-sortDeals.addEventListener(
-  "change",
-  displayDeals
-);
+calculateButton.addEventListener("click", calculateFlip);
+saveButton.addEventListener("click", saveDeal);
+cancelEditButton.addEventListener("click", cancelEdit);
+sortDeals.addEventListener("change", displayDeals);
 
 
 function clamp(number, min, max) {
-
   return Math.min(
     Math.max(number, min),
     max
@@ -50,8 +34,13 @@ function clamp(number, min, max) {
 
 function money(number) {
 
-  return "$" +
-    Number(number).toLocaleString(
+  const value = Number(number);
+
+  const sign =
+    value < 0 ? "-" : "";
+
+  return sign + "$" +
+    Math.abs(value).toLocaleString(
       undefined,
       {
         minimumFractionDigits: 2,
@@ -85,10 +74,7 @@ function readNumber(id) {
 }
 
 
-function calculateROI(
-  profit,
-  totalCost
-) {
+function calculateROI(profit, totalCost) {
 
   if (
     profit === null ||
@@ -100,6 +86,78 @@ function calculateROI(
   return (
     profit / totalCost
   ) * 100;
+}
+
+
+function calculateRisk(
+  profitLikely,
+  profitWorst
+) {
+
+  if (
+    profitLikely === null ||
+    profitWorst === null
+  ) {
+    return null;
+  }
+
+
+  if (profitLikely <= 0) {
+
+    return {
+      label: "High Risk",
+      icon: "🔴",
+      rank: 3,
+      message:
+        "The likely scenario is not profitable."
+    };
+  }
+
+
+  if (profitWorst >= 0) {
+
+    return {
+      label: "Low Risk",
+      icon: "🟢",
+      rank: 1,
+      message:
+        "Even the worst-case scenario is still profitable."
+    };
+  }
+
+
+  const downside =
+    Math.abs(profitWorst);
+
+  const downsideRatio =
+    downside / profitLikely;
+
+
+  if (
+    downside <= 1000 &&
+    downsideRatio <= 0.5
+  ) {
+
+    return {
+      label: "Medium Risk",
+      icon: "🟡",
+      rank: 2,
+      message:
+        "Likely profit: " +
+        money(profitLikely) +
+        " | Worst-case downside: " +
+        money(profitWorst)
+    };
+  }
+
+
+  return {
+    label: "High Risk",
+    icon: "🔴",
+    rank: 3,
+    message:
+      "Worst-case losses are large compared with the likely profit."
+  };
 }
 
 
@@ -123,7 +181,6 @@ function calculateDealScore(
   let score = 0;
 
 
-  // ROI: 40 points max
   score += clamp(
     roi,
     0,
@@ -131,7 +188,6 @@ function calculateDealScore(
   );
 
 
-  // Profit: 25 points max
   score += clamp(
     (profit / 2000) * 25,
     0,
@@ -139,13 +195,14 @@ function calculateDealScore(
   );
 
 
-  // Repair burden: 15 points max
   let repairPoints = 15;
+
 
   if (totalCost > 0) {
 
     const repairRatio =
       repairs / totalCost;
+
 
     if (repairRatio > 0.40) {
       repairPoints = 0;
@@ -164,11 +221,12 @@ function calculateDealScore(
     }
   }
 
+
   score += repairPoints;
 
 
-  // Mileage: 20 points max
   let mileagePoints = 0;
+
 
   if (mileage <= 80000) {
     mileagePoints = 20;
@@ -189,6 +247,7 @@ function calculateDealScore(
   else {
     mileagePoints = 3;
   }
+
 
   score += mileagePoints;
 
@@ -321,6 +380,13 @@ function normalizeDeal(deal) {
     );
 
 
+  const risk =
+    calculateRisk(
+      profitLikely,
+      profitWorst
+    );
+
+
   return {
 
     name:
@@ -360,7 +426,9 @@ function normalizeDeal(deal) {
 
     roiWorst: roiWorst,
 
-    score: score
+    score: score,
+
+    risk: risk
   };
 }
 
@@ -406,7 +474,6 @@ function calculateFlip() {
 
   const fees =
     feesInput ?? 0;
-
 
   const repairBest =
     repairBestInput ?? 0;
@@ -531,40 +598,37 @@ function calculateFlip() {
       );
 
 
-    let status = "";
+    const risk =
+      calculateRisk(
+        profitLikely,
+        profitWorst
+      );
+
+
+    let result = "";
+
 
     if (profitLikely !== null) {
 
       if (profitLikely > 0) {
 
-        status =
-          "✅ Likely Case: Profitable";
+        result +=
+          "<strong>✅ Likely Case: Profitable</strong>";
 
       }
 
       else if (profitLikely < 0) {
 
-        status =
-          "❌ Likely Case: Losing Money";
+        result +=
+          "<strong>❌ Likely Case: Losing Money</strong>";
 
       }
 
       else {
 
-        status =
-          "⚖️ Likely Case: Break Even";
+        result +=
+          "<strong>⚖️ Likely Case: Break Even</strong>";
       }
-    }
-
-
-    let result = "";
-
-    if (status !== "") {
-
-      result +=
-        "<strong>" +
-        status +
-        "</strong><br>";
     }
 
 
@@ -686,8 +750,31 @@ function calculateFlip() {
     }
 
 
-    result +=
-      "</div>";
+    result += "</div>";
+
+
+    if (risk !== null) {
+
+      result += `
+        <div class="riskBox">
+
+          <strong>
+            ${risk.icon}
+            Risk Rating:
+            ${risk.label}
+          </strong>
+
+          <br>
+          ${risk.message}
+
+          <br>
+          <span class="hint">
+            Based only on the numbers you entered.
+          </span>
+
+        </div>
+      `;
+    }
 
 
     if (score !== null) {
@@ -700,7 +787,7 @@ function calculateFlip() {
 
       result +=
         "<br><span class='hint'>" +
-        "Score uses the likely repair scenario." +
+        "Deal Score uses the likely repair scenario." +
         "</span>";
     }
 
@@ -745,7 +832,9 @@ function calculateFlip() {
 
       roiWorst: roiWorst,
 
-      score: score
+      score: score,
+
+      risk: risk
     };
 
 
@@ -852,7 +941,6 @@ function saveDeal() {
 
   exitEditMode();
 
-
   showResult(
     "✅ Deal saved."
   );
@@ -921,8 +1009,7 @@ function editDeal(index) {
     deal.target ?? "";
 
 
-  editIndex =
-    index;
+  editIndex = index;
 
 
   saveButton.textContent =
@@ -1010,7 +1097,6 @@ function deleteDeal(index) {
   if (editIndex === index) {
 
     clearForm();
-
     exitEditMode();
 
   }
@@ -1057,7 +1143,6 @@ function compareDeals() {
           deal.profitLikely !== null &&
           deal.roiLikely !== null
         );
-
       }
     );
 
@@ -1066,8 +1151,7 @@ function compareDeals() {
     completedDeals.length < 2
   ) {
 
-    comparison.className =
-      "";
+    comparison.className = "";
 
     comparison.innerHTML =
       "<p class='hint'>" +
@@ -1084,6 +1168,9 @@ function compareDeals() {
   let bestProfit =
     completedDeals[0];
 
+  let safestDeal =
+    completedDeals[0];
+
 
   completedDeals.forEach(
     function(deal) {
@@ -1092,7 +1179,6 @@ function compareDeals() {
         deal.roiLikely >
         bestROI.roiLikely
       ) {
-
         bestROI = deal;
       }
 
@@ -1101,10 +1187,23 @@ function compareDeals() {
         deal.profitLikely >
         bestProfit.profitLikely
       ) {
-
         bestProfit = deal;
       }
 
+
+      const dealRisk =
+        deal.risk?.rank ?? 99;
+
+      const safestRisk =
+        safestDeal.risk?.rank ?? 99;
+
+
+      if (
+        dealRisk <
+        safestRisk
+      ) {
+        safestDeal = deal;
+      }
     }
   );
 
@@ -1116,8 +1215,7 @@ function compareDeals() {
     );
 
 
-  let scoreText =
-    "";
+  let scoreText = "";
 
 
   if (
@@ -1138,7 +1236,6 @@ function compareDeals() {
 
           bestScore = deal;
         }
-
       }
     );
 
@@ -1170,6 +1267,17 @@ function compareDeals() {
     " — " +
     money(bestProfit.profitLikely) +
 
+    "<br>🛡️ Lowest Risk: " +
+    escapeHTML(safestDeal.name) +
+    " — " +
+    (
+      safestDeal.risk
+        ? safestDeal.risk.icon +
+          " " +
+          safestDeal.risk.label
+        : "Unknown"
+    ) +
+
     scoreText;
 }
 
@@ -1182,8 +1290,7 @@ function displayDeals() {
     );
 
 
-  container.innerHTML =
-    "";
+  container.innerHTML = "";
 
 
   if (deals.length === 0) {
@@ -1209,12 +1316,22 @@ function displayDeals() {
           deal: deal,
           originalIndex: index
         };
-
       }
     );
 
 
-  if (sortType === "score") {
+  if (sortType === "risk") {
+
+    sortedDeals.sort(
+      (a, b) =>
+        (a.deal.risk?.rank ?? 99) -
+        (b.deal.risk?.rank ?? 99)
+    );
+
+  }
+
+
+  else if (sortType === "score") {
 
     sortedDeals.sort(
       (a, b) =>
@@ -1284,7 +1401,6 @@ function displayDeals() {
         (a.deal.mileage ?? Infinity) -
         (b.deal.mileage ?? Infinity)
     );
-
   }
 
 
@@ -1329,6 +1445,14 @@ function displayDeals() {
             );
 
 
+      const riskText =
+        deal.risk === null
+          ? "Unknown"
+          : deal.risk.icon +
+            " " +
+            deal.risk.label;
+
+
       const dealBox =
         document.createElement(
           "div"
@@ -1370,6 +1494,11 @@ function displayDeals() {
         <br>Likely ROI:
         ${likelyROI}
 
+        <div class="riskRating">
+          Risk:
+          ${riskText}
+        </div>
+
         <div class="dealScore">
           ⭐ Deal Score:
           ${scoreText}
@@ -1395,7 +1524,6 @@ function displayDeals() {
           editDeal(
             originalIndex
           );
-
         }
       );
 
@@ -1418,7 +1546,6 @@ function displayDeals() {
           deleteDeal(
             originalIndex
           );
-
         }
       );
 
@@ -1434,12 +1561,10 @@ function displayDeals() {
       container.appendChild(
         dealBox
       );
-
     }
   );
 }
 
 
 displayDeals();
-
 compareDeals();

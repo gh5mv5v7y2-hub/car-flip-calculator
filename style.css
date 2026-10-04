@@ -72,6 +72,14 @@ button {
   line-height: 1.7;
 }
 
+.riskBox {
+  background: #292929;
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
 .comparison {
   background: #292929;
   padding: 15px;
@@ -89,7 +97,8 @@ button {
   line-height: 1.55;
 }
 
-.dealScore {
+.dealScore,
+.riskRating {
   margin-top: 10px;
   font-weight: bold;
 }
