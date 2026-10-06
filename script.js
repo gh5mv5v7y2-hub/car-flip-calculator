@@ -210,6 +210,75 @@ function mechanicAssessmentLabel(value) {
   }[value] || "No assessment";
 }
 
+function resaleSourceLabel(value) {
+  return {
+    rough: "Rough estimate / not verified",
+    active_comps: "Checked similar active listings",
+    sold_comps: "Checked recent sold comps"
+  }[value] || "Rough estimate / not verified";
+}
+
+function calculateInputConfidence({
+  mileage,
+  buy,
+  repairBestInput,
+  repairLikelyInput,
+  repairWorstInput,
+  sale,
+  mechanicStatus,
+  mechanicAssessment,
+  resaleSource
+}) {
+  let points = 0;
+  const weakSpots = [];
+
+  const coreComplete =
+    mileage !== null &&
+    buy !== null &&
+    repairBestInput !== null &&
+    repairLikelyInput !== null &&
+    repairWorstInput !== null &&
+    sale !== null;
+
+  if (coreComplete) points += 2;
+  else weakSpots.push("some core deal inputs are still missing");
+
+  if (mechanicStatus === "in_person") points += 3;
+  else if (mechanicStatus === "listing_review") points += 1;
+  else weakSpots.push("no mechanic review is recorded");
+
+  if (mechanicStatus !== "none" && mechanicAssessment !== "none") points += 1;
+
+  if (resaleSource === "sold_comps") points += 2;
+  else if (resaleSource === "active_comps") points += 1;
+  else weakSpots.push("resale value is still a rough estimate");
+
+  const repairRangeComplete =
+    repairBestInput !== null &&
+    repairLikelyInput !== null &&
+    repairWorstInput !== null;
+
+  if (repairRangeComplete) points += 1;
+  else weakSpots.push("repair range is incomplete");
+
+  let label = "Low";
+  let icon = "🔴";
+
+  if (points >= 8) {
+    label = "High";
+    icon = "🟢";
+  } else if (points >= 4) {
+    label = "Medium";
+    icon = "🟡";
+  }
+
+  const message = weakSpots.length
+    ? "Main uncertainty: " + weakSpots.join("; ") + "."
+    : "The main inputs are supported by a complete repair range, market comps and mechanic input.";
+
+  return { label, icon, points, message };
+}
+
 function normalizeDeal(deal) {
   const oldRepairs = Number(deal.repairs ?? 0);
   const repairBest = Number(deal.repairBest ?? oldRepairs);
@@ -225,6 +294,7 @@ function normalizeDeal(deal) {
   const mechanicStatus = deal.mechanicStatus ?? "none";
   const mechanicAssessment = deal.mechanicAssessment ?? "none";
   const mechanicNotes = deal.mechanicNotes ?? "";
+  const resaleSource = deal.resaleSource ?? "rough";
 
   const totalBest = buy + fees + repairBest;
   const totalLikely = buy + fees + repairLikely;
@@ -238,6 +308,17 @@ function normalizeDeal(deal) {
   const score = calculateDealScore(profitLikely, roiLikely, repairLikely, totalLikely, mileage, mechanicAssessment);
   const risk = applyMechanicRisk(baseRisk(profitLikely, profitWorst), mechanicAssessment);
   const offers = calculateOfferGuide(sale, fees, repairBest, repairLikely, repairWorst, target);
+  const confidence = calculateInputConfidence({
+    mileage,
+    buy,
+    repairBestInput: repairBest,
+    repairLikelyInput: repairLikely,
+    repairWorstInput: repairWorst,
+    sale,
+    mechanicStatus,
+    mechanicAssessment,
+    resaleSource
+  });
 
   return {
     name: deal.name || "Unnamed Car",
@@ -246,6 +327,7 @@ function normalizeDeal(deal) {
     mechanicStatus,
     mechanicAssessment,
     mechanicNotes,
+    resaleSource,
     mileage,
     buy,
     repairBest,
@@ -265,6 +347,7 @@ function normalizeDeal(deal) {
     roiWorst,
     score,
     risk,
+    confidence,
     offers
   };
 }
@@ -279,6 +362,7 @@ function calculateFlip() {
   const mechanicStatus = document.getElementById("mechanicStatus").value;
   const mechanicAssessment = document.getElementById("mechanicAssessment").value;
   const mechanicNotes = readText("mechanicNotes");
+  const resaleSource = document.getElementById("resaleSource").value;
 
   const mileage = readNumber("mileage");
   const buy = readNumber("buyPrice");
@@ -320,6 +404,17 @@ function calculateFlip() {
     const score = calculateDealScore(profitLikely, roiLikely, repairLikely, totalLikely, mileage, mechanicAssessment);
     const risk = applyMechanicRisk(baseRisk(profitLikely, profitWorst), mechanicAssessment);
     const offers = calculateOfferGuide(sale, fees, repairBest, repairLikely, repairWorst, target);
+    const confidence = calculateInputConfidence({
+      mileage,
+      buy,
+      repairBestInput,
+      repairLikelyInput,
+      repairWorstInput,
+      sale,
+      mechanicStatus,
+      mechanicAssessment,
+      resaleSource
+    });
 
     let result = "";
 
@@ -333,6 +428,7 @@ function calculateFlip() {
       <div class="scenarioBox">
         <strong>${title}</strong>
         <br>Repairs: ${money(repairs)}
+        ${sale !== null ? `<br>Resale assumption: ${money(sale)} <span class="hint">(held constant)</span>` : ""}
         <br>Total Investment: ${money(total)}
         ${sale !== null ? `<br>Profit: ${money(profit)}<br>ROI: ${roi === null ? "Unknown" : roi.toFixed(1) + "%"}` : ""}
       </div>
@@ -341,6 +437,18 @@ function calculateFlip() {
     result += scenario("Best Case", repairBest, totalBest, profitBest, roiBest);
     result += scenario("Likely Case", repairLikely, totalLikely, profitLikely, roiLikely);
     result += scenario("Worst Case", repairWorst, totalWorst, profitWorst, roiWorst);
+
+    if (sale !== null) {
+      result += `
+        <div class="riskBox">
+          <strong>🧮 Scenario Assumptions</strong>
+          <br>Resale is held at ${money(sale)} across Best / Likely / Worst.
+          <br>Only the repair estimate changes between those three scenarios.
+          <br>Resale source: ${escapeHTML(resaleSourceLabel(resaleSource))}.
+          <br><span class="hint">FlipGuard does not verify market value, repair prices or seller claims.</span>
+        </div>
+      `;
+    }
 
     if (offers !== null) {
       const purchaseVerdict = getPurchaseVerdict(buy, offers, target !== null);
@@ -355,6 +463,7 @@ function calculateFlip() {
           <br><br><strong>🚫 Absolute Max:</strong> ${offerMoney(offers.absoluteMax)}
           <br><span class="hint">Above this price, even the best repair scenario loses money.</span>
           <br><br><strong>${purchaseVerdict}</strong>
+          <br><br><span class="hint">Repair sensitivity: if likely repairs rise by $500, Target Offer drops by $500. If worst-case repairs rise by $500, Safe Offer drops by $500.</span>
         </div>
       `;
     }
@@ -371,12 +480,20 @@ function calculateFlip() {
       `;
     }
 
+    result += `
+      <div class="riskBox">
+        <strong>${confidence.icon} Input Confidence: ${confidence.label}</strong>
+        <br>${escapeHTML(confidence.message)}
+        <br><span class="hint">This measures how well-supported the inputs are. It does not change the profit math.</span>
+      </div>
+    `;
+
     if (risk !== null) {
       result += `
         <div class="riskBox">
-          <strong>${risk.icon} Risk Rating: ${risk.label}</strong>
+          <strong>${risk.icon} Deal Risk: ${risk.label}</strong>
           <br>${escapeHTML(risk.message)}
-          <br><span class="hint">Based on your numbers, with mechanic concerns used only to make the rating more conservative.</span>
+          <br><span class="hint">Deal Risk is based on projected margin/downside, with mechanic concerns only able to make it more conservative. Input Confidence is shown separately.</span>
         </div>
       `;
     }
@@ -390,6 +507,7 @@ function calculateFlip() {
       mechanicStatus,
       mechanicAssessment,
       mechanicNotes,
+      resaleSource,
       mileage,
       buy,
       repairBest,
@@ -409,6 +527,7 @@ function calculateFlip() {
       roiWorst,
       score,
       risk,
+      confidence,
       offers
     };
 
@@ -422,7 +541,8 @@ function calculateFlip() {
       "<strong>💵 What Should I Offer?</strong>" +
       "<br><br>🛡️ Safe Offer: " + offerMoney(offers.safeOffer) +
       "<br>🎯 Target Offer: " + offerMoney(offers.targetOffer) +
-      "<br>🚫 Absolute Max: " + offerMoney(offers.absoluteMax)
+      "<br>🚫 Absolute Max: " + offerMoney(offers.absoluteMax) +
+      "<br><br><span class='hint'>If likely repairs rise by $500, Target Offer drops by $500. If worst-case repairs rise by $500, Safe Offer drops by $500.</span>"
     );
     currentDeal = null;
     return;
@@ -459,6 +579,7 @@ function editDeal(index) {
   document.getElementById("mechanicStatus").value = deal.mechanicStatus ?? "none";
   document.getElementById("mechanicAssessment").value = deal.mechanicAssessment ?? "none";
   document.getElementById("mechanicNotes").value = deal.mechanicNotes ?? "";
+  document.getElementById("resaleSource").value = deal.resaleSource ?? "rough";
   document.getElementById("mileage").value = deal.mileage ?? "";
   document.getElementById("buyPrice").value = deal.buy ?? "";
   document.getElementById("repairBest").value = deal.repairBest ?? "";
@@ -497,6 +618,7 @@ function clearForm() {
 
   document.getElementById("mechanicStatus").value = "none";
   document.getElementById("mechanicAssessment").value = "none";
+  document.getElementById("resaleSource").value = "rough";
   currentDeal = null;
 }
 
@@ -580,6 +702,7 @@ function displayDeals() {
     const likelyROI = deal.roiLikely === null ? "Unknown" : deal.roiLikely.toFixed(1) + "%";
     const scoreText = deal.score === null ? "Unknown" : deal.score + "/100 — " + getScoreLabel(deal.score);
     const riskText = deal.risk === null ? "Unknown" : deal.risk.icon + " " + deal.risk.label;
+    const confidenceText = deal.confidence ? deal.confidence.icon + " " + deal.confidence.label : "Unknown";
     const safeOfferText = deal.offers === null ? "Unknown" : offerMoney(deal.offers.safeOffer);
 
     const dealBox = document.createElement("div");
@@ -590,10 +713,13 @@ function displayDeals() {
       <br>Purchase: ${money(deal.buy)}
       <br>Repair Range: ${money(deal.repairBest)} — ${money(deal.repairWorst)}
       <br>Likely Repairs: ${money(deal.repairLikely)}
+      <br>Expected Resale: ${deal.sale === null ? "Unknown" : money(deal.sale)}
+      <br>Resale Source: ${escapeHTML(resaleSourceLabel(deal.resaleSource))}
       <br>Likely Investment: ${money(deal.totalLikely)}
       <br>Profit Range: ${profitRange}
       <br>Likely ROI: ${likelyROI}
-      <div class="riskRating">Risk: ${riskText}</div>
+      <div class="riskRating">Deal Risk: ${riskText}</div>
+      <div class="riskRating">Input Confidence: ${confidenceText}</div>
       <div class="dealScore">⭐ Deal Score: ${scoreText}</div>
       <div class="offerSummary">🛡️ Safe Offer: ${safeOfferText}</div>
     `;
