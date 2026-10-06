@@ -75,6 +75,29 @@
           You don’t need perfect information. Enter what you know and use realistic estimates.
         </p>
 
+        <button
+          id="sampleDealButton"
+          class="secondaryButton"
+          onclick="
+            gtag('event', 'sample_deal_loaded');
+            document.getElementById('carName').value = 'Sample: 2012 Honda Civic LX';
+            document.getElementById('listingUrl').value = '';
+            document.getElementById('notes').value = 'Illustrative sample — not a live listing. Runs and drives; check-engine light is on and the seller suspects an O2 sensor.';
+            document.getElementById('mileage').value = '145000';
+            document.getElementById('buyPrice').value = '3200';
+            document.getElementById('repairBest').value = '150';
+            document.getElementById('repairLikely').value = '600';
+            document.getElementById('repairWorst').value = '1500';
+            document.getElementById('fees').value = '250';
+            document.getElementById('salePrice').value = '5200';
+            document.getElementById('targetProfit').value = '1000';
+            document.getElementById('calculateButton').click();
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          "
+        >
+          Try a Sample Deal
+        </button>
+
       </div>
 
 
@@ -363,7 +386,7 @@
       </p>
       <a
         class="feedbackButton"
-        href="https://github.com/gh5mv5v7y2-hub/car-flip-calculator/issues/1"
+        href="https://github.com/gh5mv5v7y2-hub/flipguard/issues/1"
         target="_blank"
         rel="noopener noreferrer"
         onclick="gtag('event', 'send_feedback');"
