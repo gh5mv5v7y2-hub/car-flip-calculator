@@ -27,7 +27,8 @@
       <p class="heroText">Estimate profit, repair risk and the price you should actually offer on a potential flip.</p>
       <div class="heroPoints">
         <span>✓ Profit scenarios</span>
-        <span>✓ Risk rating</span>
+        <span>✓ Deal risk</span>
+        <span>✓ Input confidence</span>
         <span>✓ Offer guidance</span>
       </div>
     </header>
@@ -56,6 +57,7 @@
             document.getElementById('mechanicNotes').value = 'Sample mechanic note: likely minor emissions repair, but diagnose the check-engine light before purchase.';
             document.getElementById('fees').value = '250';
             document.getElementById('salePrice').value = '5200';
+            document.getElementById('resaleSource').value = 'sold_comps';
             document.getElementById('targetProfit').value = '1000';
             document.getElementById('calculateButton').click();
             document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -156,6 +158,14 @@
         </div>
       </div>
 
+      <label>Resale Estimate Source</label>
+      <select id="resaleSource">
+        <option value="rough">Rough estimate / not verified</option>
+        <option value="active_comps">Checked similar active listings</option>
+        <option value="sold_comps">Checked recent sold comps</option>
+      </select>
+      <p class="hint">This only affects Input Confidence. It does not change the profit math.</p>
+
       <button id="calculateButton" class="primaryButton" onclick="gtag('event', 'analyze_deal');">Analyze Deal</button>
       <button id="saveButton" class="secondaryButton" onclick="gtag('event', 'save_deal');">Save Deal</button>
       <button id="cancelEditButton" class="secondaryButton hidden">Cancel Edit</button>
@@ -190,7 +200,7 @@
     <section class="about">
       <p class="eyebrow">WHAT IS FLIPGUARD?</p>
       <h2>A second opinion before your money leaves your pocket.</h2>
-      <p>FlipGuard is a free deal-screening tool for people buying used cars to resell. It compares repair scenarios, estimated profit, ROI and downside risk, then gives you a suggested offer range.</p>
+      <p>FlipGuard is a free deal-screening tool for people buying used cars to resell. It compares repair scenarios, estimated profit, ROI and downside risk, then gives you a suggested offer range and a separate confidence check on the inputs behind the deal.</p>
       <p class="disclaimer">FlipGuard is an estimation tool, not a mechanical inspection or guarantee of profit. Always verify a vehicle’s condition, title, mileage and market value before buying.</p>
     </section>
 
