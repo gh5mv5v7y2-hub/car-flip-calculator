@@ -2,18 +2,9 @@
 <html>
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FlipGuard — Car Flip Deal Checker</title>
-
-  <meta
-    name="description"
-    content="Analyze used car flips, estimate repair risk, calculate profit, and find your maximum offer."
-  >
+  <meta name="description" content="Analyze used car flips, estimate repair risk, calculate profit, and find your maximum offer.">
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-9HMTTBB6GX"></script>
@@ -27,53 +18,25 @@
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
-
 <body>
-
   <main class="page">
-
     <header class="hero">
-
-      <div class="brand">
-        FLIP<span>GUARD</span>
-      </div>
-
-      <p class="eyebrow">
-        USED CAR DEAL CHECKER
-      </p>
-
-      <h1>
-        Know the deal before you buy the car.
-      </h1>
-
-      <p class="heroText">
-        Estimate profit, repair risk and the price you should actually offer on a potential flip.
-      </p>
-
+      <div class="brand">FLIP<span>GUARD</span></div>
+      <p class="eyebrow">USED CAR DEAL CHECKER</p>
+      <h1>Know the deal before you buy the car.</h1>
+      <p class="heroText">Estimate profit, repair risk and the price you should actually offer on a potential flip.</p>
       <div class="heroPoints">
         <span>✓ Profit scenarios</span>
         <span>✓ Risk rating</span>
         <span>✓ Offer guidance</span>
       </div>
-
     </header>
 
-
     <section class="calculator">
-
       <div class="sectionHeader">
-
-        <p class="eyebrow">
-          ANALYZE A DEAL
-        </p>
-
-        <h2>
-          Run the numbers.
-        </h2>
-
-        <p class="hint">
-          You don’t need perfect information. Enter what you know and use realistic estimates.
-        </p>
+        <p class="eyebrow">ANALYZE A DEAL</p>
+        <h2>Run the numbers.</h2>
+        <p class="hint">You don’t need perfect information. Enter what you know and use realistic estimates.</p>
 
         <button
           id="sampleDealButton"
@@ -88,319 +51,163 @@
             document.getElementById('repairBest').value = '150';
             document.getElementById('repairLikely').value = '600';
             document.getElementById('repairWorst').value = '1500';
+            document.getElementById('mechanicStatus').value = 'listing_review';
+            document.getElementById('mechanicAssessment').value = 'minor';
+            document.getElementById('mechanicNotes').value = 'Sample mechanic note: likely minor emissions repair, but diagnose the check-engine light before purchase.';
             document.getElementById('fees').value = '250';
             document.getElementById('salePrice').value = '5200';
             document.getElementById('targetProfit').value = '1000';
             document.getElementById('calculateButton').click();
             document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
           "
-        >
-          Try a Sample Deal
-        </button>
-
+        >Try a Sample Deal</button>
       </div>
-
 
       <label>Vehicle</label>
-
-      <input
-        id="carName"
-        type="text"
-        placeholder="2010 Dodge Journey SE"
-      >
-
+      <input id="carName" type="text" placeholder="2010 Dodge Journey SE">
 
       <label>Listing URL</label>
-
-      <input
-        id="listingUrl"
-        type="url"
-        placeholder="Paste Marketplace listing"
-      >
-
+      <input id="listingUrl" type="url" placeholder="Paste Marketplace listing">
 
       <label>Notes / Known Problems</label>
-
-      <textarea
-        id="notes"
-        placeholder="No crank, transmission jerks, check engine light..."
-      ></textarea>
-
+      <textarea id="notes" placeholder="No crank, transmission jerks, check engine light..."></textarea>
 
       <div class="fieldGrid">
-
         <div>
           <label>Mileage</label>
-
-          <input
-            id="mileage"
-            type="number"
-            min="0"
-            placeholder="165000"
-          >
+          <input id="mileage" type="number" min="0" placeholder="165000">
         </div>
-
         <div>
           <label>Asking Price</label>
-
-          <input
-            id="buyPrice"
-            type="number"
-            min="0"
-            placeholder="1500"
-          >
+          <input id="buyPrice" type="number" min="0" placeholder="1500">
         </div>
-
       </div>
-
 
       <div class="divider"></div>
 
-
       <div class="subheading">
-
         <div>
-          <p class="eyebrow">
-            REPAIR RISK
-          </p>
-
-          <h3>
-            Estimate the unknown.
-          </h3>
+          <p class="eyebrow">REPAIR RISK</p>
+          <h3>Estimate the unknown.</h3>
         </div>
-
-        <p class="hint">
-          Use a range instead of betting everything on one repair number.
-        </p>
-
+        <p class="hint">Use a range instead of betting everything on one repair number.</p>
       </div>
-
 
       <div class="repairGrid">
-
         <div>
           <label>Best Case</label>
-
-          <input
-            id="repairBest"
-            type="number"
-            min="0"
-            placeholder="100"
-          >
+          <input id="repairBest" type="number" min="0" placeholder="100">
         </div>
-
         <div>
           <label>Likely Case</label>
-
-          <input
-            id="repairLikely"
-            type="number"
-            min="0"
-            placeholder="500"
-          >
+          <input id="repairLikely" type="number" min="0" placeholder="500">
         </div>
-
         <div>
           <label>Worst Case</label>
-
-          <input
-            id="repairWorst"
-            type="number"
-            min="0"
-            placeholder="1500"
-          >
+          <input id="repairWorst" type="number" min="0" placeholder="1500">
         </div>
-
       </div>
 
+      <div class="divider"></div>
 
-      <label>Taxes / Fees</label>
-
-      <input
-        id="fees"
-        type="number"
-        min="0"
-        placeholder="Optional"
-      >
-
+      <div class="subheading">
+        <div>
+          <p class="eyebrow">MECHANIC / INSPECTION</p>
+          <h3>Add a second set of eyes.</h3>
+        </div>
+        <p class="hint">Optional. Mechanic concerns can make the risk rating more conservative, but they never hide bad numbers.</p>
+      </div>
 
       <div class="fieldGrid">
+        <div>
+          <label>Inspection Status</label>
+          <select id="mechanicStatus">
+            <option value="none">Not inspected</option>
+            <option value="listing_review">Mechanic reviewed listing / symptoms</option>
+            <option value="in_person">Mechanic inspected in person</option>
+          </select>
+        </div>
+        <div>
+          <label>Mechanic Assessment</label>
+          <select id="mechanicAssessment">
+            <option value="none">No assessment</option>
+            <option value="no_major">No major concerns</option>
+            <option value="minor">Minor concerns</option>
+            <option value="major">Major concerns</option>
+            <option value="avoid">Avoid</option>
+          </select>
+        </div>
+      </div>
 
+      <label>Mechanic Notes</label>
+      <textarea id="mechanicNotes" placeholder="Transmission shifts clean, front brakes soon, oil leak needs diagnosis..."></textarea>
+
+      <label>Taxes / Fees</label>
+      <input id="fees" type="number" min="0" placeholder="Optional">
+
+      <div class="fieldGrid">
         <div>
           <label>Expected Sale Price</label>
-
-          <input
-            id="salePrice"
-            type="number"
-            min="0"
-            placeholder="2800"
-          >
+          <input id="salePrice" type="number" min="0" placeholder="2800">
         </div>
-
         <div>
           <label>Target Profit</label>
-
-          <input
-            id="targetProfit"
-            type="number"
-            min="0"
-            placeholder="800"
-          >
+          <input id="targetProfit" type="number" min="0" placeholder="800">
         </div>
-
       </div>
 
+      <button id="calculateButton" class="primaryButton" onclick="gtag('event', 'analyze_deal');">Analyze Deal</button>
+      <button id="saveButton" class="secondaryButton" onclick="gtag('event', 'save_deal');">Save Deal</button>
+      <button id="cancelEditButton" class="secondaryButton hidden">Cancel Edit</button>
 
-      <button
-        id="calculateButton"
-        class="primaryButton"
-        onclick="gtag('event', 'analyze_deal');"
-      >
-        Analyze Deal
-      </button>
-
-      <button
-        id="saveButton"
-        class="secondaryButton"
-        onclick="gtag('event', 'save_deal');"
-      >
-        Save Deal
-      </button>
-
-      <button
-        id="cancelEditButton"
-        class="secondaryButton hidden"
-      >
-        Cancel Edit
-      </button>
-
-
-      <div
-        id="result"
-        class="results"
-      >
-        Enter a potential deal to begin.
-      </div>
-
+      <div id="result" class="results">Enter a potential deal to begin.</div>
     </section>
-
 
     <section class="savedSection">
-
       <div id="comparison"></div>
-
-
       <div class="savedHeader">
-
         <div>
-
-          <p class="eyebrow">
-            DEAL BOARD
-          </p>
-
-          <h2>
-            Saved Deals
-          </h2>
-
+          <p class="eyebrow">DEAL BOARD</p>
+          <h2>Saved Deals</h2>
         </div>
-
-
         <div class="sortBox">
-
-          <label>
-            Sort by
-          </label>
-
+          <label>Sort by</label>
           <select id="sortDeals">
-
-            <option value="default">
-              Saved Order
-            </option>
-
-            <option value="risk">
-              Lowest Risk
-            </option>
-
-            <option value="score">
-              Best Deal Score
-            </option>
-
-            <option value="roi">
-              Best Likely ROI
-            </option>
-
-            <option value="profit">
-              Highest Likely Profit
-            </option>
-
-            <option value="purchase">
-              Lowest Purchase Price
-            </option>
-
-            <option value="investment">
-              Lowest Likely Investment
-            </option>
-
-            <option value="mileage">
-              Lowest Mileage
-            </option>
-
+            <option value="default">Saved Order</option>
+            <option value="risk">Lowest Risk</option>
+            <option value="score">Best Deal Score</option>
+            <option value="roi">Best Likely ROI</option>
+            <option value="profit">Highest Likely Profit</option>
+            <option value="purchase">Lowest Purchase Price</option>
+            <option value="investment">Lowest Likely Investment</option>
+            <option value="mileage">Lowest Mileage</option>
           </select>
-
         </div>
-
       </div>
-
-
       <div id="savedDeals"></div>
-
     </section>
-
 
     <section class="about">
-
-      <p class="eyebrow">
-        WHAT IS FLIPGUARD?
-      </p>
-
-      <h2>
-        A second opinion before your money leaves your pocket.
-      </h2>
-
-      <p>
-        FlipGuard is a free deal-screening tool for people buying used cars to resell. It compares repair scenarios, estimated profit, ROI and downside risk, then gives you a suggested offer range.
-      </p>
-
-      <p class="disclaimer">
-        FlipGuard is an estimation tool, not a mechanical inspection or guarantee of profit. Always verify a vehicle’s condition, title, mileage and market value before buying.
-      </p>
-
+      <p class="eyebrow">WHAT IS FLIPGUARD?</p>
+      <h2>A second opinion before your money leaves your pocket.</h2>
+      <p>FlipGuard is a free deal-screening tool for people buying used cars to resell. It compares repair scenarios, estimated profit, ROI and downside risk, then gives you a suggested offer range.</p>
+      <p class="disclaimer">FlipGuard is an estimation tool, not a mechanical inspection or guarantee of profit. Always verify a vehicle’s condition, title, mileage and market value before buying.</p>
     </section>
-
 
     <section class="feedbackSection">
       <p class="eyebrow">HELP IMPROVE FLIPGUARD</p>
       <h2>Used it on a real deal?</h2>
-      <p>
-        Tell me what felt useful, confusing, wrong, or missing. Real feedback decides what gets built next.
-      </p>
+      <p>Tell me what felt useful, confusing, wrong, or missing. Real feedback decides what gets built next.</p>
       <a
         class="feedbackButton"
         href="https://github.com/gh5mv5v7y2-hub/flipguard/issues/1"
         target="_blank"
         rel="noopener noreferrer"
         onclick="gtag('event', 'send_feedback');"
-      >
-        Send Feedback
-      </a>
+      >Send Feedback</a>
     </section>
 
-
-    <footer>
-      FlipGuard v1 · Built for smarter flips.
-    </footer>
-
+    <footer>FlipGuard v1 · Built for smarter flips.</footer>
   </main>
-
 </body>
 </html>
